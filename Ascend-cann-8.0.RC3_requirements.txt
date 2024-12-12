@@ -1,0 +1,18 @@
+# CANN
+numpy>=1.19.2,<=1.24
+decorator>=4.4.0
+sympy>=1.5.1
+cffi>=1.12.3
+protobuf==3.20.2
+attrs
+cython
+pyyaml
+pathlib2
+scipy
+requests
+psutil
+absl-py
+
+# CANN_AMCT_ONNX
+onnx==1.14.0
+onnxruntime==1.16.0

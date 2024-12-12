@@ -1,0 +1,4 @@
+aarch64/*.tar.gz
+aarch64/*.run
+x86_64/*.tar.gz
+x86_64/*.run
