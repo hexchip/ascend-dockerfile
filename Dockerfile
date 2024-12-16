@@ -23,6 +23,10 @@ ARG ARCH=aarch64
 RUN sed -i s@http://.*ports.ubuntu.com@http://mirrors4.tuna.tsinghua.edu.cn@g /etc/apt/sources.list
 # Fix dpkg: error processing package libc-bin
 RUN rm /var/lib/dpkg/info/libc-bin.*
+# Fix lib64 lose
+RUN mkidr -p /usr/lib64 \
+    && ln -s /usr/lib/aarch64-linux-gnu/ld-linux-aarch64.so.1 /usr/lib64/ld-linux-aarch64.so.1 \
+    && ln -s /usr/lib64 /lib64
 
 
 FROM base-${TARGETARCH} AS ascend-base
