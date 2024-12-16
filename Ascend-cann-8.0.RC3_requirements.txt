@@ -1,5 +1,5 @@
 # CANN
-numpy>=1.19.2,<=1.24
+numpy>=1.19.2,<=1.24.4
 decorator>=4.4.0
 sympy>=1.5.1
 cffi>=1.12.3

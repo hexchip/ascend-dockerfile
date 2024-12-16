@@ -1,6 +1,6 @@
-# remote: device not in local
 # local: device in local
-ARG DEVICE_WHERE=remote
+# remote: device not in local
+ARG DEVICE_WHERE=local
 
 FROM ubuntu:22.04 AS base
 
@@ -44,6 +44,8 @@ RUN --mount=type=cache,id="ascend/apt/cache",target=/var/cache/apt,sharing=locke
         pciutils \
         wget \
         curl \
+        libjpeg-dev \
+        libpng-dev \
         git \
         python3 \
         python3-pip
@@ -53,9 +55,13 @@ RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 RUN --mount=type=cache,id=ascend/pip,target=/root/.cache/pip \
     pip config set global.index-url "https://mirrors.huaweicloud.com/repository/pypi/simple" \
     && pip config set global.trusted-host "mirrors.huaweicloud.com" \
-    && python -m pip install --upgrade pip
+    && python -m pip install --upgrade pip \
+    && apt-get --yes remove python3-pip
 
-FROM ascend-base AS ascend-cann-local
+RUN --mount=type=cache,id=ascend/pip,target=/root/.cache/pip \
+    pip install -U setuptools
+
+FROM ascend-base AS ascend-cann-base
 ARG ARCH
 ARG TARGETOS
 ARG CANN_VERSION="8.0.RC3"
@@ -102,7 +108,12 @@ RUN --mount=type=bind,target=/mnt/context,rw \
     && echo "source ${ASCEND_BASE}/nnal/atb/set_env.sh" >> ~/.bashrc
 
 
-FROM ascend-cann-local AS ascend-cann-remote
+FROM ascend-cann-base AS ascend-cann-local
+ARG ASCEND_BASE
+ENV LD_LIBRARY_PATH=${ASCEND_BASE}/driver/lib64
+
+
+FROM ascend-cann-base AS ascend-cann-remote
 ARG ARCH
 ARG ASCEND_BASE
 ENV LD_LIBRARY_PATH=${ASCEND_BASE}/ascend-toolkit/latest/${ARCH}-linux/devlib
@@ -110,10 +121,17 @@ ENV LD_LIBRARY_PATH=${ASCEND_BASE}/ascend-toolkit/latest/${ARCH}-linux/devlib
 
 FROM ascend-cann-${DEVICE_WHERE} AS ascend-pytorch-base
 ARG TORCH_VERSION="2.1.0"
-RUN --mount=type=cache,id=ascend/pip,target=/root/.cache/pip \
-    pip install torch==${TORCH_VERSION} \
+ARG PYTOUCH_REQUIREMENTS="pytorch-${TORCH_VERSION}_requirements.txt"
+RUN --mount=type=bind,target=/mnt/context \
+    --mount=type=cache,id=ascend/pip,target=/root/.cache/pip \
+    pip install -r /mnt/context/${PYTOUCH_REQUIREMENTS} \
         --index-url https://download.pytorch.org/whl/cpu
 
+# install other package about pytorch
+RUN --mount=type=cache,id=ascend/pip,target=/root/.cache/pip \
+    pip install \
+        'huggingface_hub[cli,torch]' \
+        transformers
 
 FROM ascend-pytorch-base AS ascend-apex-builder
 
@@ -144,6 +162,7 @@ RUN git clone -b master https://gitee.com/ascend/apex.git \
 
 FROM ascend-pytorch-base AS ascend-pytorch
 # install Ascend Extension for PyTorch
+ARG ASCEND_BASE
 ARG TORCH_VERSION
 ARG TORCH_NPU_VERSION=${TORCH_VERSION}.post8
 
@@ -151,14 +170,9 @@ ARG ASCEND_TORCH_NPU_PYTHON_REQUIREMENTS="Ascend-torch_npu-${TORCH_NPU_VERSION}_
 
 RUN --mount=type=bind,target=/mnt/context \
     --mount=type=cache,id=ascend/pip,target=/root/.cache/pip \
+    source ${ASCEND_BASE}/ascend-toolkit/set_env.sh \
     pip install -r /mnt/context/${ASCEND_TORCH_NPU_PYTHON_REQUIREMENTS} \
     && pip install torch-npu==${TORCH_NPU_VERSION}
-
-# install other package about pytorch
-RUN --mount=type=cache,id=ascend/pip,target=/root/.cache/pip \
-pip install \
-    'huggingface_hub[cli,torch]' \
-    transformers
 
 # install Ascend APEX
 RUN --mount=type=bind,from=ascend-apex-builder,target=/mnt/apex-builder \

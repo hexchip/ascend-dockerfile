@@ -93,7 +93,7 @@ hexchip/ascend-dev:cann8.0.RC3-310b-pytorch2.1.0-mindie1.0.RC30-abi0
 
 注：请勿直接指定`TARGETOS`和`ARCH`的值，应该由`--platform`指定。  
 当没有指定`--platform`时，`--platform`默认为当前执行`docker build`的platform的信息。  
-例如你的系统是Linux，cpu架构为amd64. 则等价于指定`--platform=linux/amd64`。
+例如你的系统是Linux，cpu架构为amd64. 则等价于指定`--platform=linux/amd64`。  
 如欲了解更多平台构建的信息，请参考[docker docs](https://docs.docker.com/build/building/multi-platform/)。
 
 ### python requirements
