@@ -22,7 +22,12 @@ FROM base AS base-arm64
 ARG ARCH=aarch64
 RUN sed -i s@http://.*ports.ubuntu.com@http://mirrors4.tuna.tsinghua.edu.cn@g /etc/apt/sources.list
 # Fix dpkg: error processing package libc-bin
-RUN rm /var/lib/dpkg/info/libc-bin.*
+# RUN rm /var/lib/dpkg/info/libc-bin.*
+# RUN --mount=type=cache,id="ascend/apt/cache",target=/var/cache/apt,sharing=locked \
+#     --mount=type=cache,id="ascend/apt/lib",target=/var/lib/apt,sharing=locked \
+#     apt-get clean \
+#     && apt-get update \
+#     && apt-get --yes install libc-bin
 
 
 FROM base-${TARGETARCH} AS ascend-base
@@ -46,6 +51,7 @@ RUN --mount=type=cache,id="ascend/apt/cache",target=/var/cache/apt,sharing=locke
         curl \
         git \
         python3 \
+        python3-dev \
         python3-pip
 
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
@@ -58,7 +64,7 @@ RUN --mount=type=cache,id=ascend/pip,target=/root/.cache/pip \
 FROM ascend-base AS ascend-cann-local
 ARG ARCH
 ARG TARGETOS
-ARG CANN_VERSION="8.0.RC3"
+ARG CANN_VERSION="8.0.0"
 
 # install python requirements for cann
 ARG CANN_PYTHON_REQUIREMENTS="Ascend-cann-${CANN_VERSION}_requirements.txt"
@@ -145,7 +151,7 @@ RUN git clone -b master https://gitee.com/ascend/apex.git \
 FROM ascend-pytorch-base AS ascend-pytorch
 # install Ascend Extension for PyTorch
 ARG TORCH_VERSION
-ARG TORCH_NPU_VERSION=${TORCH_VERSION}.post8
+ARG TORCH_NPU_VERSION=${TORCH_VERSION}.post10
 
 ARG ASCEND_TORCH_NPU_PYTHON_REQUIREMENTS="Ascend-torch_npu-${TORCH_NPU_VERSION}_requirements.txt"
 
@@ -170,11 +176,11 @@ ARG TARGETOS
 ARG ARCH
 ARG ASCEND_BASE
 ARG TORCH_VERSION
-ARG MINDIE_VERSION="1.0.RC3"
+ARG MINDIE_VERSION="1.0.0"
 ARG TORCH_ABI_VERSION="abi0"
 
 # install ATB models
-ARG ATB_MODELS_PKG="Ascend-mindie-atb-models_${MINDIE_VERSION}_${TARGETOS}-${ARCH}_torch${TORCH_VERSION}-${TORCH_ABI_VERSION}.tar.gz"
+ARG ATB_MODELS_PKG="Ascend-mindie-atb-models_${MINDIE_VERSION}_${TARGETOS}-${ARCH}_py310_torch${TORCH_VERSION}-${TORCH_ABI_VERSION}.tar.gz"
 ARG ATB_MODELS_INSTALL_PATH="${ASCEND_BASE}/MindIE-LLM/atb-models"
 RUN --mount=type=bind,target=/mnt/context \
     mkdir -p ${ATB_MODELS_INSTALL_PATH} \
@@ -198,4 +204,24 @@ RUN --mount=type=bind,target=/mnt/context,rw \
     && /mnt/context/${ARCH}/${MINDIE_PKG} --quiet --install --install-path=$ASCEND_BASE \
     && echo "source ${ASCEND_BASE}/mindie/set_env.sh" >> ~/.bashrc
 
+# 推理程序需要使用到底层驱动，底层驱动的运行依赖HwHiAiUser，HwBaseUser，HwDmUser三个用户
+# 创建运行推理应用的用户及组，HwHiAiUse，HwDmUser，HwBaseUser的UID与GID分别为1000，1101，1102为例
+RUN groupadd  HwHiAiUser -g 1000 && \
+    useradd -d /home/HwHiAiUser -u 1000 -g 1000 -m -s /bin/bash HwHiAiUser && \
+    groupadd HwDmUser -g 1101 && \
+    useradd -d /home/HwDmUser -u 1101 -g 1101 -m -s /bin/bash HwDmUser && \
+    usermod -aG HwDmUser HwHiAiUser && \
+    groupadd HwBaseUser -g 1102 && \
+    useradd -d /home/HwBaseUser -u 1102 -g 1102 -m -s /bin/bash HwBaseUser && \
+    usermod -aG HwBaseUser HwHiAiUser
+
+RUN ln -sf /lib /lib64 \
+    && mkdir /var/dmp \
+    && mkdir /usr/slog \
+    && chown HwHiAiUser:HwHiAiUser /usr/slog \
+    && chown HwHiAiUser:HwHiAiUser /var/dmp \
+    && mkdir /workspace \
+    && chown HwHiAiUser:HwHiAiUser /workspace
+
+USER 1000
 WORKDIR /workspace
