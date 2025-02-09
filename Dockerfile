@@ -206,22 +206,20 @@ RUN --mount=type=bind,target=/mnt/context,rw \
 
 # 推理程序需要使用到底层驱动，底层驱动的运行依赖HwHiAiUser，HwBaseUser，HwDmUser三个用户
 # 创建运行推理应用的用户及组，HwHiAiUse，HwDmUser，HwBaseUser的UID与GID分别为1000，1101，1102为例
-RUN groupadd  HwHiAiUser -g 1000 && \
-    useradd -d /home/HwHiAiUser -u 1000 -g 1000 -m -s /bin/bash HwHiAiUser && \
-    groupadd HwDmUser -g 1101 && \
-    useradd -d /home/HwDmUser -u 1101 -g 1101 -m -s /bin/bash HwDmUser && \
-    usermod -aG HwDmUser HwHiAiUser && \
-    groupadd HwBaseUser -g 1102 && \
-    useradd -d /home/HwBaseUser -u 1102 -g 1102 -m -s /bin/bash HwBaseUser && \
-    usermod -aG HwBaseUser HwHiAiUser
+RUN groupadd  HwHiAiUser -g 1000 \
+    && groupadd HwDmUser -g 1101 \
+    && groupadd HwBaseUser -g 1102 \
+    && useradd -u 1000 -g 1000 -G 1101,1102 -d /home/HwHiAiUser -m -s /bin/bash HwHiAiUser \
+    && useradd -u 1101 -g 1101 -d /home/HwDmUser -m -s /bin/bash HwDmUser \
+    && useradd -u 1102 -g 1102 -d /home/HwBaseUser  -m -s /bin/bash HwBaseUser
 
 RUN ln -sf /lib /lib64 \
     && mkdir /var/dmp \
     && mkdir /usr/slog \
     && chown HwHiAiUser:HwHiAiUser /usr/slog \
-    && chown HwHiAiUser:HwHiAiUser /var/dmp \
-    && mkdir /workspace \
-    && chown HwHiAiUser:HwHiAiUser /workspace
+    && chown HwHiAiUser:HwHiAiUser /var/dmp
+
+COPY --chown=HwHiAiUser:HwHiAiUser --chmod=754 entrypoint.sh /home/HwHiAiUser/entrypoint.sh
 
 USER 1000
-WORKDIR /workspace
+ENTRYPOINT ["/home/HwHiAiUser/entrypoint.sh"]
