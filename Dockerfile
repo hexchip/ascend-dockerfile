@@ -119,7 +119,7 @@ RUN --mount=type=bind,target=/mnt/context \
     && tar -zxf amct/amct_onnx/amct_onnx_op.tar.gz -C amct/amct_onnx/\
     && cp /mnt/context/${AMCT_ONNX_RUNTIME_OP_INCLUDE}/* amct/amct_onnx/amct_onnx_op/inc/ \
     && python3 amct/amct_onnx/amct_onnx_op/setup.py build \
-    && rm -rf amct
+    && rm -rf amct build amct_log
 
 FROM ascend-cann-local AS ascend-cann-remote
 ARG ARCH
@@ -156,7 +156,8 @@ RUN --mount=type=cache,id="ascend/apt/cache",target=/var/cache/apt,sharing=locke
         libopenblas-dev
 
 # bug of ascend apex，in npu.patch
-RUN ln -s /usr/local/lib/python3.10/dist-packages/ /usr/lib/python3.10/site-packages
+RUN ln -s /usr/local/lib/python3.10/dist-packages/ /usr/lib/python3.10/site-packages \
+    && ln -s /home/HwHiAiUser/.local/lib/python3.10/site-packages/* /usr/lib/python3.10/site-packages
 
 USER HwHiAiUser
 
