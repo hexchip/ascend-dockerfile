@@ -50,10 +50,9 @@ RUN --mount=type=cache,id="ascend/apt/cache",target=/var/cache/apt,sharing=locke
 
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 
-RUN --mount=type=cache,id=ascend/pip,target=/root/.cache/pip \
-    pip config set global.index-url "https://mirrors.huaweicloud.com/repository/pypi/simple" \
+RUN pip config set global.index-url "https://mirrors.huaweicloud.com/repository/pypi/simple" \
     && pip config set global.trusted-host "mirrors.huaweicloud.com" \
-    && python -m pip install --upgrade pip
+    && python -m pip install --no-cache-dir --upgrade pip
 
 # 推理程序需要使用到底层驱动，底层驱动的运行依赖HwHiAiUser，HwBaseUser，HwDmUser三个用户
 # 创建运行推理应用的用户及组，HwHiAiUse，HwDmUser，HwBaseUser的UID与GID分别为1000，1101，1102为例
@@ -218,7 +217,7 @@ RUN --mount=type=bind,target=/mnt/context,rw \
     && echo "source ${ASCEND_BASE}/mindie/set_env.sh" >> ~/.bashrc
 
 
-FROM ascend-mindie AS ascend-A200IA2
+FROM ascend-mindie AS ascend-a200ia2
 
 RUN ln -sf /lib /lib64 \
     && mkdir /var/dmp \
