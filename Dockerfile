@@ -89,7 +89,7 @@ ARG ASCEND_BASE=/home/HwHiAiUser/Ascend
 ARG CANN_TOOLKIT_PKG="Ascend-cann-toolkit_${CANN_VERSION}_${TARGETOS}-${ARCH}.run"
 RUN --mount=type=bind,target=/mnt/context \
     --mount=type=cache,id=ascend/pip,target=/root/.cache/pip \
-    && /mnt/context/${ARCH}/${CANN_TOOLKIT_PKG} --quiet --install --install-path=$ASCEND_BASE \
+    /mnt/context/${ARCH}/${CANN_TOOLKIT_PKG} --quiet --install --install-path=$ASCEND_BASE \
     && echo "source ${ASCEND_BASE}/ascend-toolkit/set_env.sh" >> ~/.bashrc
 
 # install cann kernels
@@ -97,7 +97,7 @@ ARG ASCEND_CHIP_TYPE="310b"
 ARG CANN_KERNELS_PKG="Ascend-cann-kernels-${ASCEND_CHIP_TYPE}_${CANN_VERSION}_${TARGETOS}-${ARCH}.run"
 RUN --mount=type=bind,target=/mnt/context \
     --mount=type=cache,id=ascend/pip,target=/root/.cache/pip \
-    && /mnt/context/${ARCH}/${CANN_KERNELS_PKG} --quiet --install --install-path=$ASCEND_BASE
+    /mnt/context/${ARCH}/${CANN_KERNELS_PKG} --quiet --install --install-path=$ASCEND_BASE
 
 # install cann nnal
 ARG CANN_NNAL_PKG="Ascend-cann-nnal_${CANN_VERSION}_${TARGETOS}-${ARCH}.run"
@@ -176,9 +176,9 @@ RUN --mount=type=bind,target=/mnt/context \
 
 # install other package about pytorch
 RUN --mount=type=cache,id=ascend/pip,target=/root/.cache/pip \
-pip install --user \
-    'huggingface_hub[cli,torch]' \
-    transformers
+    pip install --user \
+        'huggingface_hub[cli,torch]' \
+        transformers
 
 # install Ascend APEX
 RUN --mount=type=bind,from=ascend-apex-builder,target=/mnt/apex-builder \
