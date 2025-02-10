@@ -7,11 +7,11 @@
 
 执行如下命令拉取镜像：
 
-    docker pull hexchip/ascend-dev:cann8.0.RC3-310b-pytorch2.1.0-mindie1.0.RC30-abi0
+    docker pull hexchip/ascend-dev:cann8.0.0-310b-pytorch2.1.0-abi0-mindie1.0.0
 
 如果不能访问dockerhub，执行如下命令拉取镜像：
 
-    docker pull hexchip/ascend-dev:cann8.0.RC3-310b-pytorch2.1.0-mindie1.0.RC30-abi0
+    docker pull registry.cn-hangzhou.aliyuncs.com/hexchip/ascend-dev:cann8.0.0-310b-pytorch2.1.0-abi0-mindie1.0.0
 
 ### 如果容器运行在拥有昇腾设备的主机上
 
@@ -23,9 +23,9 @@
 ```
 docker run -it --rm \
 -e ASCEND_VISIBLE_DEVICES=0 \
--v .:/workspace \
--v ~/.cache/huggingface:/root/.cache/huggingface \
-hexchip/ascend-dev:cann8.0.RC3-310b-pytorch2.1.0-mindie1.0.RC30-abi0
+-e ASCEND_ALLOW_LINK=True \
+-v ~/.cache/huggingface:/HwHiAiUser/.cache/huggingface \
+hexchip/ascend-dev:cann8.0.0-310b-pytorch2.1.0-abi0-mindie1.0.0
 ```
 
 注：  
