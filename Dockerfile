@@ -90,7 +90,7 @@ ARG CANN_TOOLKIT_PKG="Ascend-cann-toolkit_${CANN_VERSION}_${TARGETOS}-${ARCH}.ru
 RUN --mount=type=bind,target=/mnt/context,rw \
     --mount=type=cache,id=ascend/pip,target=/root/.cache/pip \
     sudo chmod +x /mnt/context/${ARCH}/${CANN_TOOLKIT_PKG} \
-    && /mnt/context/${ARCH}/${CANN_TOOLKIT_PKG} --quiet --install --install-path=$ASCEND_BASE --install-for-all \
+    && /mnt/context/${ARCH}/${CANN_TOOLKIT_PKG} --quiet --install --install-path=$ASCEND_BASE \
     && echo "source ${ASCEND_BASE}/ascend-toolkit/set_env.sh" >> ~/.bashrc
 
 # install cann kernels
@@ -99,7 +99,7 @@ ARG CANN_KERNELS_PKG="Ascend-cann-kernels-${ASCEND_CHIP_TYPE}_${CANN_VERSION}_${
 RUN --mount=type=bind,target=/mnt/context,rw \
     --mount=type=cache,id=ascend/pip,target=/root/.cache/pip \
     sudo chmod +x /mnt/context/${ARCH}/${CANN_KERNELS_PKG} \
-    && /mnt/context/${ARCH}/${CANN_KERNELS_PKG} --quiet --install --install-path=$ASCEND_BASE --install-for-all
+    && /mnt/context/${ARCH}/${CANN_KERNELS_PKG} --quiet --install --install-path=$ASCEND_BASE
 
 # install cann nnal
 ARG CANN_NNAL_PKG="Ascend-cann-nnal_${CANN_VERSION}_${TARGETOS}-${ARCH}.run"
