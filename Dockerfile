@@ -87,26 +87,23 @@ RUN --mount=type=bind,target=/mnt/context \
 # install cann toolkit
 ARG ASCEND_BASE=/home/HwHiAiUser/Ascend
 ARG CANN_TOOLKIT_PKG="Ascend-cann-toolkit_${CANN_VERSION}_${TARGETOS}-${ARCH}.run"
-RUN --mount=type=bind,target=/mnt/context,rw \
+RUN --mount=type=bind,target=/mnt/context \
     --mount=type=cache,id=ascend/pip,target=/root/.cache/pip \
-    sudo chmod +x /mnt/context/${ARCH}/${CANN_TOOLKIT_PKG} \
     && /mnt/context/${ARCH}/${CANN_TOOLKIT_PKG} --quiet --install --install-path=$ASCEND_BASE \
     && echo "source ${ASCEND_BASE}/ascend-toolkit/set_env.sh" >> ~/.bashrc
 
 # install cann kernels
 ARG ASCEND_CHIP_TYPE="310b"
 ARG CANN_KERNELS_PKG="Ascend-cann-kernels-${ASCEND_CHIP_TYPE}_${CANN_VERSION}_${TARGETOS}-${ARCH}.run"
-RUN --mount=type=bind,target=/mnt/context,rw \
+RUN --mount=type=bind,target=/mnt/context \
     --mount=type=cache,id=ascend/pip,target=/root/.cache/pip \
-    sudo chmod +x /mnt/context/${ARCH}/${CANN_KERNELS_PKG} \
     && /mnt/context/${ARCH}/${CANN_KERNELS_PKG} --quiet --install --install-path=$ASCEND_BASE
 
 # install cann nnal
 ARG CANN_NNAL_PKG="Ascend-cann-nnal_${CANN_VERSION}_${TARGETOS}-${ARCH}.run"
-RUN --mount=type=bind,target=/mnt/context,rw \
+RUN --mount=type=bind,target=/mnt/context \
     --mount=type=cache,id=ascend/pip,target=/root/.cache/pip \
     source ${ASCEND_BASE}/ascend-toolkit/set_env.sh \
-    && sudo chmod +x /mnt/context/${ARCH}/${CANN_NNAL_PKG} \
     && /mnt/context/${ARCH}/${CANN_NNAL_PKG} --quiet --install --install-path=$ASCEND_BASE \
     && echo "source ${ASCEND_BASE}/nnal/atb/set_env.sh" >> ~/.bashrc
 
@@ -137,6 +134,7 @@ RUN --mount=type=cache,id=ascend/pip,target=/root/.cache/pip \
 FROM ascend-pytorch-base AS ascend-apex-builder
 
 USER root
+WORKDIR /
 
 RUN --mount=type=cache,id="ascend/apt/cache",target=/var/cache/apt,sharing=locked \
     --mount=type=cache,id="ascend/apt/lib",target=/var/lib/apt,sharing=locked \
@@ -158,8 +156,6 @@ RUN --mount=type=cache,id="ascend/apt/cache",target=/var/cache/apt,sharing=locke
 # bug of ascend apex，in npu.patch
 RUN ln -s /usr/local/lib/python3.10/dist-packages/ /usr/lib/python3.10/site-packages \
     && ln -s /home/HwHiAiUser/.local/lib/python3.10/site-packages/* /usr/lib/python3.10/site-packages
-
-USER HwHiAiUser
 
 RUN git clone -b master https://gitee.com/ascend/apex.git \
     && chmod +x apex/scripts/build.sh \
@@ -216,10 +212,9 @@ RUN --mount=type=bind,target=/mnt/context \
 # install MindIE
 ARG MINDIE_PKG="Ascend-mindie_${MINDIE_VERSION}_${TARGETOS}-${ARCH}.run"
 # TODO diff abi logic. default abi0
-RUN --mount=type=bind,target=/mnt/context,rw \
+RUN --mount=type=bind,target=/mnt/context \
     --mount=type=cache,id=ascend/pip,target=/root/.cache/pip \
     source ${ASCEND_BASE}/ascend-toolkit/set_env.sh \
-    && sudo chmod +x /mnt/context/${ARCH}/${MINDIE_PKG} \
     && /mnt/context/${ARCH}/${MINDIE_PKG} --quiet --install --install-path=$ASCEND_BASE \
     && echo "source ${ASCEND_BASE}/mindie/set_env.sh" >> ~/.bashrc
 
