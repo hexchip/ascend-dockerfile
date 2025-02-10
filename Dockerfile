@@ -1,6 +1,6 @@
-# remote: device not in local
 # local: device in local
-ARG DEVICE_WHERE=remote
+# remote: device not in local
+ARG DEVICE_WHERE=local
 
 FROM ubuntu:22.04 AS base
 
@@ -21,13 +21,6 @@ RUN sed -i s@http://.*archive.ubuntu.com@http://repo.huaweicloud.com@g /etc/apt/
 FROM base AS base-arm64
 ARG ARCH=aarch64
 RUN sed -i s@http://.*ports.ubuntu.com@http://mirrors4.tuna.tsinghua.edu.cn@g /etc/apt/sources.list
-# Fix dpkg: error processing package libc-bin
-# RUN rm /var/lib/dpkg/info/libc-bin.*
-# RUN --mount=type=cache,id="ascend/apt/cache",target=/var/cache/apt,sharing=locked \
-#     --mount=type=cache,id="ascend/apt/lib",target=/var/lib/apt,sharing=locked \
-#     apt-get clean \
-#     && apt-get update \
-#     && apt-get --yes install libc-bin
 
 
 FROM base-${TARGETARCH} AS ascend-base
@@ -219,7 +212,13 @@ RUN ln -sf /lib /lib64 \
     && chown HwHiAiUser:HwHiAiUser /usr/slog \
     && chown HwHiAiUser:HwHiAiUser /var/dmp
 
-COPY --chown=HwHiAiUser:HwHiAiUser --chmod=754 entrypoint.sh /home/HwHiAiUser/entrypoint.sh
-
 USER 1000
+RUN echo "source ${ASCEND_BASE}/ascend-toolkit/set_env.sh" >> ~/.bashrc \
+    && echo "source ${ASCEND_BASE}/nnal/atb/set_env.sh" >> ~/.bashrc \
+    && echo "source ${ATB_MODELS_INSTALL_PATH}/set_env.sh" >> ~/.bashrc \
+    && echo "source ${ASCEND_BASE}/mindie/set_env.sh" >> ~/.bashrc
+
+COPY --chown=HwHiAiUser:HwHiAiUser --chmod=754 entrypoint.sh /home/HwHiAiUser/entrypoint.sh
 ENTRYPOINT ["/home/HwHiAiUser/entrypoint.sh"]
+CMD ["bash"]
+
