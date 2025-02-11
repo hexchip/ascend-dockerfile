@@ -70,6 +70,9 @@ RUN groupadd  HwHiAiUser -g 1000 \
 WORKDIR /home/HwHiAiUser/
 USER HwHiAiUser
 
+RUN pip config set global.index-url "https://mirrors.huaweicloud.com/repository/pypi/simple" \
+    && pip config set global.trusted-host "mirrors.huaweicloud.com"
+
 FROM ascend-base AS ascend-cann-local
 ARG ARCH
 ARG TARGETOS
