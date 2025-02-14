@@ -194,10 +194,11 @@ ARG ARCH
 ARG ASCEND_BASE
 ARG TORCH_VERSION
 ARG MINDIE_VERSION="1.0.0"
+ARG MINDIE_ATB_MODELS_VERSION
 ARG TORCH_ABI_VERSION="abi0"
 
 # install ATB models
-ARG ATB_MODELS_PKG="Ascend-mindie-atb-models_${MINDIE_VERSION}_${TARGETOS}-${ARCH}_py310_torch${TORCH_VERSION}-${TORCH_ABI_VERSION}.tar.gz"
+ARG ATB_MODELS_PKG="Ascend-mindie-atb-models_${MINDIE_ATB_MODELS_VERSION:-MINDIE_VERSION}_${TARGETOS}-${ARCH}_py310_torch${TORCH_VERSION}-${TORCH_ABI_VERSION}.tar.gz"
 ARG ATB_MODELS_INSTALL_PATH="${ASCEND_BASE}/MindIE-LLM/atb-models"
 RUN --mount=type=bind,target=/mnt/context \
     mkdir -p ${ATB_MODELS_INSTALL_PATH} \
@@ -234,7 +235,7 @@ RUN ln -sf /lib /lib64 \
 
 USER HwHiAiUser
 
-ENV LD_LIBRARY_PATH=/lib64:/usr/lib64:/usr/local/Ascend/driver/lib64
+ENV LD_LIBRARY_PATH=/lib64:/usr/lib64:/usr/lib64/aicpu_kernels:/usr/local/Ascend/driver/lib64
 
 COPY --chown=HwHiAiUser:HwHiAiUser --chmod=754 entrypoint.sh /home/HwHiAiUser/entrypoint.sh
 ENTRYPOINT ["/home/HwHiAiUser/entrypoint.sh"]

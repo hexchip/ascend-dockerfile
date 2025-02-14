@@ -27,14 +27,16 @@
 docker run -it --rm \
 -e ASCEND_VISIBLE_DEVICES=0 \
 -e ASCEND_ALLOW_LINK=True \
--v .:/workspace
+-v /usr/lib64/libdp.so:/usr/lib64/libdp.so \
+-v .:/workspace \
 -v ~/.cache/huggingface:/home/HwHiAiUser/.cache/huggingface \
 hexchip/ascend-dev:cann8.0.0-310b-pytorch2.1.0-mindie1.0.0
 ```
 
 注：  
 - `-e ASCEND_VISIBLE_DEVICES=0` 仅容器运行在拥有昇腾设备的主机上时需要。
-- `-e ASCEND_ALLOW_LINK=True` 仅 **Atlas 200I/500 A2**系列的昇腾设备 需要
+- `-e ASCEND_ALLOW_LINK=True` 仅 **Atlas 200I/500 A2**系列的昇腾设备需要
+- `-v /usr/lib64/libdp.so:/usr/lib64/libdp.so` 仅orange-pi需要，因其默认安装的昇腾驱动不包含libdp.so
 - `-v .:/home/HwHiAiUser/workspace` 挂载当前目录。
 - `-v ~/.cache/huggingface:/home/HwHiAiUser/.cache/huggingface` 挂载huggingface缓存
 
