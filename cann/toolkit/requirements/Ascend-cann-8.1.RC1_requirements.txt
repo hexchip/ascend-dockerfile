@@ -1,4 +1,3 @@
-# CANN
 numpy>=1.19.2,<=1.24
 decorator>=4.4.0
 sympy>=1.5.1
@@ -12,7 +11,3 @@ scipy
 requests
 psutil
 absl-py
-
-# CANN_AMCT_ONNX
-onnx==1.14.0
-onnxruntime==1.16.0
